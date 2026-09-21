@@ -25,6 +25,15 @@ contains the answer.
 **Why this target:**
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
+Three of my five questions (bus tickets, bakery, limited mobility) are answered
+by a cross-cutting guide, and the town guides repeat the same topics, so those
+are the ones most likely to pull back chunks from the wrong file. The bus
+question also uses words ("confused", "visitors") that appear nowhere in the
+guide's own wording. I allow one miss for those, but not two, because the other
+two questions name a town and a specific detail (Pellew Sands parking, Halden
+Bay overflow lot) that each appear in only one guide, so they should be found
+reliably. A miss on those would point at the chunking or the embedding, not at
+overlapping guides.
 
 ---
 
@@ -35,6 +44,14 @@ Every answer the system produces names at least one source document.
 **Why this target:**
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
+All of them, not four, because naming a source is the point of a guide people
+will act on (a wrong opening time is only checkable if you can go and look at
+the guide it came from). It's achievable because `generate.py` labels every
+retrieved chunk `[from <filename>]` in the prompt and tells the model to name
+the file, so the filename is always in front of it. What would have to go wrong
+is the model ignoring that instruction, which it can do because the source is
+named by the model and not attached by my code. A refusal from the relevance
+gate is not counted, since no answer is produced and there is no source to name.
 
 ---
 
@@ -52,6 +69,13 @@ in at least 4 of 5 tries.
 **Why this target:**
 <!-- What did your distances look like when you set the cutoff in Milestone 4?
      Was there a clean gap, or did the two groups overlap? -->
+Measured with the default chunking (800 characters, 120 overlap, 51 chunks) and
+top 5 results. The best-chunk distance for my five out-of-scope questions was
+0.829 to 0.903. The best-chunk distance for my five in-corpus questions was
+0.319 to 0.695. There is a clean gap between them (0.695 to 0.829), so the two
+groups don't overlap. The starting cutoff of 0.6 sits below the weakest
+in-corpus question (bus tickets, 0.695), so at 0.6 the gate would refuse that
+question as well as all five out-of-scope ones.
 
 ---
 
@@ -68,11 +92,11 @@ in at least 4 of 5 tries.
           sentence cut in half at either end."
        - "No chunk is shorter than 200 characters, since anything below that
           in my corpus turned out to be a heading with no content under it." -->
-
+At least 4 of 5 sampled chunks contain a complete section or paragraph, with no sentence cut in half at the start or end.
 
 
 **Why this target:**
-
+My corpus (city_guides) is organized by headings with information spread across full paragraphs, not single-sentence facts. A chunk that cuts a paragraph mid-sentence risks losing the detail needed to answer the question, so I'm checking that chunking respects those natural boundaries.
 
 
 ---
@@ -86,11 +110,11 @@ in at least 4 of 5 tries.
      handles badly, about source attribution being correct rather than merely
      present — anything, as long as it names a number or an observable
      outcome. -->
-
+For at least 4 of 5 test questions that mention a specific town, the source the system names is a guide for that same town, not a different one.
 
 
 **Why this target:**
-
+My corpus has both town-specific guides and cross-cutting guides (eating, walking, accessibility) that reference multiple towns. It's easy for retrieval to grab a chunk from the wrong town's guide if the wording overlaps, so I want to confirm attribution is actually correct, not just present.
 
 
 ---
