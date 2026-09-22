@@ -29,53 +29,70 @@
 
 ## Chunking Strategy
 
-**Chunk size:**
-**Overlap:**
+**Chunk size:** No fixed number — a chunk is one `## `-labelled section of a
+guide (getting there, eating, where to stay, ...). Sections run 174 to 711
+characters across the 14 guides.
 
-<!-- What about YOUR documents made you pick these numbers? Short posts and
-     long sectioned guides don't want the same chunking, and "800 seemed
-     reasonable" earns nothing. Point at something you noticed when you read
-     the documents in Milestone 1.
+**Overlap:** 0. Splits only happen at a heading boundary, never mid-sentence,
+so there's nothing to bridge.
 
-     If you changed your mind partway through, say so and say why. That's worth
-     more than pretending you got it right first time.
+The starter's `fallback_split` cuts at a fixed 800 characters, which lands
+mid-paragraph and sometimes mid-word, splitting a section away from its own
+heading. My guides are organised by heading rather than by length, so I split
+on that structure instead: `chunker.py::split_documents` breaks each guide on
+its `"## "` markers, keeping every section with its heading. That took
+`city_guides` from 51 chunks (650 avg, 24-800 range) to 94 chunks (306 avg,
+174-711 range).
 
-     Milestone 3. -->
+One wrinkle: 4 of the 14 guides open with just a `"# Title"` line and no intro
+paragraph before their first `"## "` heading, which would otherwise produce a
+23-27 character chunk with no real content. I fold that line into the section
+that follows instead of emitting it on its own.
 
 ## Sample Chunks
 
-<!-- Five chunks, pasted as text. Label each one and name the file it came from
-     AND the function that produced it — the grader checks your code against
-     what you claim here.
+Printed with `python app.py chunks -n 5`, the default stride-sampled spread
+across the corpus.
 
-     `python app.py chunks -n 5` prints all three for you. Copy them straight
-     across.
-
-     Milestone 3. -->
-
-**Chunk 1** — source: `` — produced by: ``
+**Chunk 1** — source: `guide_accessibility.md#0` — produced by: `chunker.py::split_documents`
 
 ```
+# Getting around the region with limited mobility
+
+An honest assessment rather than a promotional one. Some of these places are
+difficult and it is better to know in advance.
 ```
 
-**Chunk 2** — source: `` — produced by: ``
+**Chunk 2** — source: `guide_corry_vale.md#5` — produced by: `chunker.py::split_documents`
 
 ```
+## Where to stay
+
+Perhaps thirty beds in the entire valley, spread across two pubs and a handful of farmhouse rooms. In summer these are booked months ahead. Camping is permitted on two marked fields and nowhere else.
 ```
 
-**Chunk 3** — source: `` — produced by: ``
+**Chunk 3** — source: `guide_givens_mill.md#2` — produced by: `chunker.py::split_documents`
 
 ```
+## Getting around
+
+Everything is on one street along the river. The mill is at one end and the church at the other, eight minutes apart. The riverside path continues in both directions for as far as you want to walk.
 ```
 
-**Chunk 4** — source: `` — produced by: ``
+**Chunk 4** — source: `guide_kestrelford.md#4` — produced by: `chunker.py::split_documents`
 
 ```
+## What to see
+
+The market square on a Saturday morning is the main event and has run continuously since the 1400s. The parish church has a 13th-century tower you can climb for £2. The old trackbed walk runs six miles to the next village along an easy gradient and is the best half-day here.
 ```
 
-**Chunk 5** — source: `` — produced by: ``
+**Chunk 5** — source: `guide_pellew_sands.md#6` — produced by: `chunker.py::split_documents`
 
 ```
+## When to go
+
+June and September for the beach without the crowds. July and August are busy and the town is at its most itself, for better and worse. Winter is bleak, largely closed, and has a following among people who like that sort of thing.
 ```
 
 ## Sample Answer

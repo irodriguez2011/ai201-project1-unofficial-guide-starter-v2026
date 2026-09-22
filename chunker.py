@@ -22,6 +22,7 @@ to it, write down what you saw, and move on. That's a real observation about
 your pipeline, not giving up.
 """
 
+import re
 from dataclasses import dataclass
 
 import config
@@ -80,24 +81,42 @@ def fallback_split(
     return chunks
 
 
+_HEADING_BREAK = re.compile(r"\n(?=## )")
+_MIN_LEAD_CHARS = 80  # below this, a leading fragment is a title with no body
+
+
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    Split on this corpus's own structure instead of a character count: each
+    city guide is organised under labelled "## " sections (getting there,
+    eating, where to stay, ...), and a chunk is one section, heading included.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
+    Below `_MIN_LEAD_CHARS`, the text before the first "## " is nothing but
+    the "# Title" line (some guides have no intro paragraph before their
+    first heading), so that fragment is folded into the section that follows
+    rather than kept as its own near-empty chunk.
 
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
-
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    Set `produced_by` to "chunker.py::split_documents" so the README's Sample
+    Chunks section names the right function.
     """
-    return fallback_split(documents)
+    chunks: list[Chunk] = []
+    for doc in documents:
+        sections = _HEADING_BREAK.split(doc.text)
+
+        if len(sections) > 1 and len(sections[0].strip()) < _MIN_LEAD_CHARS:
+            sections = [sections[0].strip() + "\n\n" + sections[1]] + sections[2:]
+
+        for index, section in enumerate(s.strip() for s in sections if s.strip()):
+            chunks.append(
+                Chunk(
+                    text=section,
+                    source=doc.source,
+                    index=index,
+                    produced_by="chunker.py::split_documents",
+                )
+            )
+
+    return chunks
 
 
 def describe(chunks: list[Chunk]) -> str:
